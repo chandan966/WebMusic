@@ -1,0 +1,255 @@
+.section-block {
+  padding-top: 35px;
+}
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 18px;
+}
+.section-heading h2 {
+  font-family: 'Space Grotesk';
+  font-size: 23px;
+  letter-spacing: -.7px;
+  margin: 7px 0 0;
+}
+.section-heading h2 em {
+  font-style: normal;
+  color: var(--red);
+}
+.section-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: #77717b;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+.view-all {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  color: #a9a2ad;
+  font-size: 10px;
+}
+.view-all:hover {
+  color: var(--red);
+}
+.track-grid {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 17px;
+}
+.track-card {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid #ffffff08;
+  border-radius: 14px;
+  background: linear-gradient(155deg,#17171b,#121216);
+  animation: rise .45s ease both;
+  animation-delay: var(--delay);
+  transition: transform .25s,border .25s;
+}
+.track-card:hover, .track-card.is-active {
+  transform: translateY(-3px);
+  border-color: #ff31512c;
+  background: linear-gradient(155deg,#20171c,#151418);
+}
+.cover-wrap {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border-radius: 9px;
+  cursor: pointer;
+  background: #20161e;
+}
+.cover-wrap>img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .6s,filter .3s;
+}
+.track-card:hover .cover-wrap>img {
+  transform: scale(1.06);
+  filter: brightness(.72);
+}
+.cover-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(0deg,#0006,transparent 65%);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.track-card:hover .cover-overlay, .track-card.is-active .cover-overlay {
+  opacity: 1;
+}
+.cover-play {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--red);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 5px 20px #ff315166;
+  transform: translateY(7px);
+  transition: transform .2s;
+}
+.track-card:hover .cover-play {
+  transform: translateY(0);
+}
+.track-index {
+  position: absolute;
+  left: 9px;
+  top: 9px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  background: #09090ca6;
+  font-size: 8px;
+  color: #ddd;
+}
+.heart-btn {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #ffffff20;
+  border-radius: 50%;
+  background: #09090ca8;
+  color: #e2d9df;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.track-card:hover .heart-btn, .heart-btn.liked {
+  opacity: 1;
+}
+.heart-btn.liked {
+  color: var(--red);
+}
+.track-meta {
+  padding: 12px 3px 3px;
+}
+.track-title-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.track-title-line h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+}
+.track-duration {
+  font-size: 9px;
+  color: #706b75;
+  flex-shrink: 0;
+}
+.track-meta>p {
+  font-size: 10px;
+  color: #9b949e;
+  margin: 6px 0 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.track-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.genre-tag {
+  font-size: 8px;
+  color: #b7a0a9;
+  background: #ffffff07;
+  border: 1px solid #ffffff0c;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.more-btn {
+  background: transparent;
+  border: 0;
+  color: #8b828e;
+  letter-spacing: 2px;
+  font-size: 12px;
+}
+.more-btn:hover {
+  color: #fff;
+}
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  border: 1px dashed #ffffff15;
+  border-radius: 14px;
+  color: #a29aa4;
+}
+.empty-state svg {
+  color: var(--red);
+}
+.empty-state h3 {
+  font-family: 'Space Grotesk';
+  color: #fff;
+}
+.empty-state p {
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+@media(min-width:1500px) {
+  .track-grid {
+    gap: 20px;
+  }
+}
+@media(max-width:1100px) {
+  .track-grid {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 12px;
+  }
+}
+@media(max-width:760px) {
+  .section-block {
+    padding-top: 28px;
+  }
+  .section-heading h2 {
+    font-size: 20px;
+  }
+  .section-controls {
+    gap: 8px;
+  }
+  .section-controls>span {
+    display: none;
+  }
+  .track-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 11px;
+  }
+  .track-card {
+    padding: 7px;
+  }
+  .track-title-line h3 {
+    font-size: 11px;
+  }
+  .track-meta {
+    padding-top: 9px;
+  }
+  .track-meta>p {
+    margin: 5px 0 9px;
+  }
+}
+@media(max-width:390px) {
+  .section-heading h2 {
+    font-size: 18px;
+  }
+}
+

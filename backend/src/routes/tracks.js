@@ -1,0 +1,6 @@
+import {Router} from 'express';import {pool} from '../db.js';import {requireAuth} from '../middleware/auth.js';
+const router=Router();
+router.get('/',async(req,res,next)=>{try{const q=String(req.query.q||'').trim();const [rows]=q?await pool.execute('SELECT * FROM tracks WHERE title LIKE ? OR artist LIKE ? OR album LIKE ? OR genre LIKE ? ORDER BY id DESC LIMIT 100',[`%${q}%`,`%${q}%`,`%${q}%`,`%${q}%`]):await pool.query('SELECT * FROM tracks ORDER BY id DESC LIMIT 100');res.json(rows);}catch(err){next(err);}});
+router.get('/liked',requireAuth,async(req,res,next)=>{try{const [rows]=await pool.execute('SELECT t.* FROM tracks t JOIN liked_tracks l ON l.track_id=t.id WHERE l.user_id=? ORDER BY l.created_at DESC',[req.user.id]);res.json(rows);}catch(err){next(err);}});
+router.post('/:id/like',requireAuth,async(req,res,next)=>{try{const id=Number(req.params.id);const [found]=await pool.execute('SELECT track_id FROM liked_tracks WHERE user_id=? AND track_id=?',[req.user.id,id]);if(found.length)await pool.execute('DELETE FROM liked_tracks WHERE user_id=? AND track_id=?',[req.user.id,id]);else await pool.execute('INSERT INTO liked_tracks(user_id,track_id) VALUES(?,?)',[req.user.id,id]);res.json({liked:!found.length});}catch(err){next(err);}});
+export default router;

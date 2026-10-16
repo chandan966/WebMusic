@@ -1,0 +1,26 @@
+.toast {
+  position: fixed;
+  z-index: 50;
+  bottom: 110px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 15px;
+  border: 1px solid #ff315133;
+  border-radius: 10px;
+  background: #21151b;
+  color: #f8edf0;
+  font-size: 11px;
+  box-shadow: 0 10px 35px #0008;
+  animation: rise .25s ease;
+}
+@media(max-width:760px) {
+  .toast {
+    bottom: 94px;
+    right: 12px;
+    left: 12px;
+    justify-content: center;
+  }
+}
+

@@ -1,0 +1,124 @@
+.modal-backdrop {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  background: #050407c9;
+  backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  animation: fade .2s ease;
+}
+.modal {
+  position: relative;
+  width: min(420px,100%);
+  padding: 32px;
+  border: 1px solid #ffffff17;
+  border-radius: 19px;
+  background: linear-gradient(145deg,#1c171d,#111115);
+  box-shadow: 0 25px 100px #000a;
+  animation: rise .3s ease;
+}
+.small-modal {
+  width: min(390px,100%);
+}
+.modal-close {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  border: 0;
+  background: transparent;
+  color: #99919c;
+}
+.modal-logo {
+  width: 43px;
+  height: 43px;
+  border-radius: 13px;
+  background: linear-gradient(135deg,var(--red),#a30e32);
+  display: grid;
+  place-items: center;
+  margin-bottom: 23px;
+}
+.modal h2 {
+  font-family: 'Space Grotesk';
+  font-size: 26px;
+  letter-spacing: -1px;
+  margin: 10px 0;
+}
+.modal-sub {
+  font-size: 11px;
+  color: #99919c;
+  line-height: 1.6;
+  margin-bottom: 22px;
+}
+.auth-form {
+  display: grid;
+  gap: 15px;
+}
+.auth-form label {
+  display: grid;
+  gap: 7px;
+  color: #bcb5bf;
+  font-size: 10px;
+}
+.auth-form input {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #ffffff16;
+  border-radius: 8px;
+  background: #09090d;
+  color: #fff;
+  outline: none;
+  font-size: 11px;
+}
+.auth-form input:focus {
+  border-color: #ff315166;
+}
+.full-btn {
+  width: 100%;
+  margin-top: 4px;
+}
+.switch-auth {
+  text-align: center;
+  color: #8f8791;
+  font-size: 10px;
+  margin: 20px 0 0;
+}
+.switch-auth button {
+  border: 0;
+  background: transparent;
+  color: #ff647b;
+  font-weight: 700;
+}
+.playlist-choice {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #ffffff0d;
+  background: #ffffff05;
+  border-radius: 9px;
+  padding: 12px;
+  margin: 8px 0;
+  text-align: left;
+  font-size: 11px;
+}
+.playlist-choice svg:last-child {
+  margin-left: auto;
+  color: var(--red);
+}
+.playlist-choice:hover {
+  background: #ff31510b;
+  border-color: #ff315133;
+}
+.empty-note {
+  color: #8f8791;
+  font-size: 11px;
+  padding: 10px 0;
+}
+@media(max-width:760px) {
+  .modal {
+    padding: 27px 22px;
+  }
+}
+

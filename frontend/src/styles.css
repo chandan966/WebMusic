@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+:root {
+  font-family: 'DM Sans',sans-serif;
+  color: #f7f5f6;
+  background: #09090c;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --red: #ff3151;
+  --muted: #96949e;
+  --line: rgba(255,255,255,.075);
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #09090c;
+}
+button, input {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+  color: inherit;
+}
+button:focus-visible, input:focus-visible {
+  outline: 2px solid #ff526b;
+  outline-offset: 3px;
+}
+.icon-btn {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #9d99a4;
+}
+.icon-btn:hover {
+  color: #fff;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ff697e;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+}
+.primary-btn, .secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 9px;
+  padding: 12px 15px;
+  font-size: 11px;
+  font-weight: 700;
+  transition: transform .2s,box-shadow .2s;
+}
+.primary-btn {
+  border: 1px solid #ff5268;
+  background: linear-gradient(115deg,#ff3151,#ed2748);
+  box-shadow: 0 8px 26px #ff315122;
+}
+.primary-btn:hover {
+  box-shadow: 0 10px 30px #ff31514d;
+  transform: translateY(-2px);
+}
+.secondary-btn {
+  border: 1px solid #ffffff17;
+  background: #ffffff06;
+}
+.secondary-btn:hover {
+  background: #ffffff0e;
+}
+.muted-eyebrow {
+  font-size: 8px;
+  color: #8d8691;
+  letter-spacing: 1.7px;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes float {
+  0%,100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes eq {
+  to {
+    transform: scaleY(.35);
+  }
+}
+@media(max-width:390px) {
+  .primary-btn, .secondary-btn {
+    padding: 11px;
+    font-size: 10px;
+  }
+}
+
