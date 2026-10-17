@@ -49,11 +49,11 @@ export default function TopBar({
           title={
             spotifySearch
               ? 'Search your WebMusic library'
-              : 'Search Spotify catalogue'
+              : 'Search Spotify with WebMusic'
           }
         >
           <Disc3 size={15} />
-          <span>Spotify</span>
+          <span>WebMusic</span>
         </button>
         {user ? (
           <button

@@ -90,23 +90,64 @@ export async function GET(request) {
     const searchUrl = new URL('https://api.spotify.com/v1/search');
     searchUrl.searchParams.set('q', query);
     searchUrl.searchParams.set('type', 'track');
-    searchUrl.searchParams.set('limit', '20');
+    searchUrl.searchParams.set('limit', '10');
 
-    const response = await fetch(searchUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
+    const makeSearchRequest = (accessToken) =>
+      fetch(searchUrl, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        cache: 'no-store',
+      });
+
+    let response = await makeSearchRequest(token);
+
+    if (response.status === 401) {
+      cachedToken = '';
+      tokenExpiresAt = 0;
+      const refreshed = await getAccessToken();
+      if (refreshed.error) return refreshed.error;
+      response = await makeSearchRequest(refreshed.token);
+    }
 
     if (!response.ok) {
-      console.error('Spotify search request failed:', response.status);
+      let spotifyMessage = '';
+      try {
+        const errorBody = await response.json();
+        spotifyMessage =
+          errorBody?.error?.message || errorBody?.error_description || '';
+      } catch {
+        spotifyMessage = '';
+      }
+
+      console.error('Spotify search request failed:', {
+        status: response.status,
+        message: spotifyMessage || 'No error details returned',
+      });
+
+      const message =
+        response.status === 401
+          ? 'Spotify rejected its access token. Check that the Client ID and Client Secret belong to the same Spotify app, then redeploy.'
+          : response.status === 403
+            ? 'Spotify denied this app access to search. Check the app status and API access in the Spotify Developer Dashboard.'
+            : response.status === 400
+              ? 'Spotify rejected the search request. Try a shorter search, or check the Spotify app API access.'
+              : response.status === 429
+                ? 'Spotify search is busy. Please wait a moment and try again.'
+                : 'Spotify could not complete the search. Check the Vercel function logs for the Spotify response status.';
+
       return NextResponse.json(
+        { message },
         {
-          message:
+          status:
             response.status === 429
-              ? 'Spotify search is busy. Please wait a moment and try again.'
-              : 'Spotify search failed. Please try again later.',
+              ? 429
+              : response.status === 400
+                ? 400
+                : 502,
+          headers:
+            response.status === 429 && response.headers.get('retry-after')
+              ? { 'Retry-After': response.headers.get('retry-after') }
+              : undefined,
         },
-        { status: response.status === 429 ? 429 : 502 },
       );
     }
 
