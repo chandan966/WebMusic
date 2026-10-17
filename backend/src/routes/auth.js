@@ -1,8 +1,0 @@
-import {Router} from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import {pool} from '../db.js';
-const router=Router();
-router.post('/register',async(req,res,next)=>{try{const {name,email,password}=req.body||{};if(!name?.trim()||!email?.trim()||!password)return res.status(400).json({message:'Name, email and password are required.'});if(password.length<8)return res.status(400).json({message:'Password must contain at least 8 characters.'});const e=email.trim().toLowerCase();const [exists]=await pool.execute('SELECT id FROM users WHERE email=?',[e]);if(exists.length)return res.status(409).json({message:'An account with this email already exists.'});const hash=await bcrypt.hash(password,12);const [r]=await pool.execute('INSERT INTO users(name,email,password_hash) VALUES(?,?,?)',[name.trim(),e,hash]);const user={id:r.insertId,name:name.trim(),email:e,role:'user'};res.status(201).json({user,token:jwt.sign(user,process.env.JWT_SECRET,{expiresIn:'7d'})});}catch(err){next(err);}});
-router.post('/login',async(req,res,next)=>{try{const {email,password}=req.body||{};if(!email||!password)return res.status(400).json({message:'Email and password are required.'});const [rows]=await pool.execute('SELECT id,name,email,password_hash,role FROM users WHERE email=?',[email.trim().toLowerCase()]);if(!rows.length||!(await bcrypt.compare(password,rows[0].password_hash)))return res.status(401).json({message:'Incorrect email or password.'});const {password_hash,...user}=rows[0];res.json({user,token:jwt.sign(user,process.env.JWT_SECRET,{expiresIn:'7d'})});}catch(err){next(err);}});
-export default router;

@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useMemo, useState } from 'react';
 import { request } from './api';
 import { demoTracks } from './data';
@@ -21,47 +23,79 @@ export default function App() {
   const [volume, setVolume] = useState(0.8);
   const [query, setQuery] = useState('');
   const [view, setView] = useState('Home');
-  const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('webmusic_user'));
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState(null);
   const [modal, setModal] = useState('');
   const [authMode, setAuthMode] = useState('login');
   const [notice, setNotice] = useState('');
-  const [liked, setLiked] = useState(() =>
-    JSON.parse(localStorage.getItem('webmusic_liked') || '[]'),
-  );
-  const [playlists, setPlaylists] = useState(() =>
-    JSON.parse(localStorage.getItem('webmusic_playlists') || '[]'),
-  );
+  const [liked, setLiked] = useState([]);
+  const [playlists, setPlaylists] = useState([]);
+  const [hydrated, setHydrated] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+
+  useEffect(() => {
+    try {
+      setUser(JSON.parse(localStorage.getItem('webmusic_user') || 'null'));
+      setLiked(JSON.parse(localStorage.getItem('webmusic_liked') || '[]'));
+      setPlaylists(
+        JSON.parse(localStorage.getItem('webmusic_playlists') || '[]').map(
+          (playlist, index) => ({
+            ...playlist,
+            id: String(playlist.id || `local-${index}`),
+            trackIds: Array.isArray(playlist.trackIds) ? playlist.trackIds : [],
+          }),
+        ),
+      );
+    } catch {
+      setNotice('Could not restore saved library data from this browser.');
+    }
+    setHydrated(true);
+  }, []);
 
   useEffect(() => {
     request('/tracks')
       .then((data) => {
-        if (data.length) setTracks(data);
+        if (data.length) {
+          setTracks(data);
+          setActive(
+            (current) =>
+              data.find((track) => track.id === current.id) || data[0],
+          );
+        }
       })
-      .catch(() => {});
+      .catch((error) => setNotice(`Using demo tracks: ${error.message}`));
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
     localStorage.setItem('webmusic_liked', JSON.stringify(liked));
-  }, [liked]);
-
-  useEffect(() => {
     localStorage.setItem('webmusic_playlists', JSON.stringify(playlists));
-  }, [playlists]);
+    if (user) localStorage.setItem('webmusic_user', JSON.stringify(user));
+    else localStorage.removeItem('webmusic_user');
+  }, [hydrated, liked, playlists, user]);
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('webmusic_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('webmusic_user');
-    }
-  }, [user]);
+    if (!hydrated || !user) return;
+    Promise.all([request('/tracks/liked'), request('/playlists')])
+      .then(async ([likedTracks, savedPlaylists]) => {
+        const playlistsWithTracks = await Promise.all(
+          savedPlaylists.map(async (playlist) => {
+            const playlistTracks = await request(
+              `/playlists/${playlist.id}/tracks`,
+            );
+            return {
+              ...playlist,
+              id: String(playlist.id),
+              trackIds: playlistTracks.map((track) => String(track.id)),
+            };
+          }),
+        );
+        setLiked(likedTracks.map((track) => String(track.id)));
+        setPlaylists(playlistsWithTracks);
+      })
+      .catch((error) =>
+        setNotice(`Could not load your library: ${error.message}`),
+      );
+  }, [hydrated, user]);
 
   const visible = useMemo(() => {
     let filteredTracks = tracks;
@@ -104,17 +138,69 @@ export default function App() {
 
   function like(track) {
     const id = String(track.id);
+    const wasLiked = liked.includes(id);
     setLiked((current) =>
-      current.includes(id)
-        ? current.filter((item) => item !== id)
-        : [...current, id],
+      wasLiked ? current.filter((item) => item !== id) : [...current, id],
     );
 
     if (user && !id.startsWith('demo-')) {
-      request(`/tracks/${track.id}/like`, { method: 'POST' }).catch((error) =>
-        setNotice(error.message),
-      );
+      request(`/tracks/${track.id}/like`, { method: 'POST' })
+        .then(({ liked: isNowLiked }) =>
+          setLiked((current) =>
+            isNowLiked
+              ? current.includes(id)
+                ? current
+                : [...current, id]
+              : current.filter((item) => item !== id),
+          ),
+        )
+        .catch((error) => {
+          setLiked((current) =>
+            wasLiked
+              ? current.includes(id)
+                ? current
+                : [...current, id]
+              : current.filter((item) => item !== id),
+          );
+          setNotice(error.message);
+        });
     }
+  }
+
+  async function createPlaylist(name) {
+    if (user) {
+      const playlist = await request('/playlists', {
+        method: 'POST',
+        body: JSON.stringify({ name }),
+      });
+      const savedPlaylist = {
+        ...playlist,
+        id: String(playlist.id),
+        trackIds: [],
+      };
+      setPlaylists((current) => [savedPlaylist, ...current]);
+      return savedPlaylist;
+    }
+
+    const playlist = { id: `local-${Date.now()}`, name, trackIds: [] };
+    setPlaylists((current) => [playlist, ...current]);
+    return playlist;
+  }
+
+  async function addTrackToPlaylist(playlist, trackId) {
+    if (user) {
+      await request(`/playlists/${playlist.id}/tracks`, {
+        method: 'POST',
+        body: JSON.stringify({ trackId }),
+      });
+    }
+    setPlaylists((current) =>
+      current.map((item) =>
+        item.id === playlist.id && !item.trackIds.includes(trackId)
+          ? { ...item, trackIds: [...item.trackIds, trackId] }
+          : item,
+      ),
+    );
   }
 
   async function auth(event) {
@@ -204,9 +290,10 @@ export default function App() {
         setAuthMode={setAuthMode}
         auth={auth}
         playlists={playlists}
-        setPlaylists={setPlaylists}
         tracks={tracks}
         setNotice={setNotice}
+        createPlaylist={createPlaylist}
+        addTrackToPlaylist={addTrackToPlaylist}
       />
       <NoticeToast notice={notice} setNotice={setNotice} />
     </div>

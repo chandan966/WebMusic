@@ -9,37 +9,45 @@ export default function ModalManager({
   setAuthMode,
   auth,
   playlists,
-  setPlaylists,
   tracks,
   setNotice,
   createPlaylist,
+  addTrackToPlaylist,
 }) {
   const [playlistName, setPlaylistName] = useState('');
 
-  function submitPlaylist(event) {
+  async function submitPlaylist(event) {
     event.preventDefault();
     const name = playlistName.trim();
     if (!name) return;
 
-    setPlaylists((current) => [{ name, trackIds: [] }, ...current]);
-    setPlaylistName('');
-    setModal('');
-    setNotice(`Playlist “${name}” created`);
+    try {
+      await createPlaylist(name);
+      setPlaylistName('');
+      setModal('');
+      setNotice(`Playlist “${name}” created`);
+    } catch (error) {
+      setNotice(error.message);
+    }
   }
 
-  function addTrackToPlaylist(playlist) {
-    const trackId = String(
-      tracks.find((track) => String(track.id) === modal.slice(4))?.id,
+  async function addTrack(playlist) {
+    const track = tracks.find(
+      (item) => String(item.id) === modal.slice(4),
     );
-    setPlaylists((current) =>
-      current.map((item) =>
-        item.name === playlist.name && !item.trackIds.includes(trackId)
-          ? { ...item, trackIds: [...item.trackIds, trackId] }
-          : item,
-      ),
-    );
-    setNotice(`Added to ${playlist.name}`);
-    setModal('');
+    if (!track) {
+      setNotice('Track not found.');
+      setModal('');
+      return;
+    }
+
+    try {
+      await addTrackToPlaylist(playlist, String(track.id));
+      setNotice(`Added to ${playlist.name}`);
+      setModal('');
+    } catch (error) {
+      setNotice(error.message);
+    }
   }
 
   if (!['auth', 'playlist'].includes(modal) && !modal.startsWith('add:')) {
@@ -155,8 +163,8 @@ export default function ModalManager({
             playlists.map((playlist) => (
               <button
                 className="playlist-choice"
-                key={playlist.name}
-                onClick={() => addTrackToPlaylist(playlist)}
+                key={playlist.id}
+                onClick={() => addTrack(playlist)}
               >
                 <ListMusic size={18} />
                 {playlist.name}
