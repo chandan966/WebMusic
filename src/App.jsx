@@ -14,6 +14,15 @@ import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import TrackSection from './components/TrackSection';
 
+const homeCategories = [
+  { title: 'Marathi Songs', matches: (genre) => genre.includes('marathi') },
+  {
+    title: 'Hindi Songs',
+    matches: (genre) => genre.includes('hindi') || genre.includes('bollywood'),
+  },
+  { title: 'Item Songs', matches: (genre) => genre.includes('item') },
+];
+
 export default function App() {
   const [tracks, setTracks] = useState(demoTracks);
   const [active, setActive] = useState(demoTracks[0]);
@@ -252,18 +261,39 @@ export default function App() {
           {['Home', 'Discover'].includes(view) && !query && (
             <Hero tracks={tracks} play={play} setView={setView} />
           )}
-          <TrackSection
-            visible={visible}
-            active={active}
-            isLiked={isLiked}
-            like={like}
-            play={play}
-            setModal={setModal}
-            query={query}
-            view={view}
-            setQuery={setQuery}
-            setView={setView}
-          />
+          {view === 'Home' && !query ? (
+            homeCategories.map((category) => (
+              <TrackSection
+                key={category.title}
+                sectionTitle={category.title}
+                visible={tracks.filter((track) =>
+                  category.matches(String(track.genre || '').toLowerCase()),
+                )}
+                active={active}
+                isLiked={isLiked}
+                like={like}
+                play={play}
+                setModal={setModal}
+                query={query}
+                view={view}
+                setQuery={setQuery}
+                setView={setView}
+              />
+            ))
+          ) : (
+            <TrackSection
+              visible={visible}
+              active={active}
+              isLiked={isLiked}
+              like={like}
+              play={play}
+              setModal={setModal}
+              query={query}
+              view={view}
+              setQuery={setQuery}
+              setView={setView}
+            />
+          )}
           <MoodStrip setView={setView} />
           <Footer />
         </div>

@@ -20,13 +20,16 @@ export default function TrackSection({
   view,
   setQuery,
   setView,
+  sectionTitle,
 }) {
   return (
     <section className="section-block">
       <div className="section-heading">
         <div>
           <div className="eyebrow muted-eyebrow">
-            {query
+            {sectionTitle
+              ? sectionTitle.toUpperCase()
+              : query
               ? 'SEARCH RESULTS'
               : view === 'Liked Songs'
                 ? 'YOUR COLLECTION'
@@ -35,7 +38,9 @@ export default function TrackSection({
                   : 'MADE FOR YOUR MOOD'}
           </div>
           <h2>
-            {query ? (
+            {sectionTitle ? (
+              sectionTitle
+            ) : query ? (
               `Results for “${query}”`
             ) : view === 'Liked Songs' ? (
               'Liked Songs'
@@ -52,9 +57,11 @@ export default function TrackSection({
         </div>
         <div className="section-controls">
           <span>{visible.length} TRACKS</span>
-          <button className="view-all" onClick={() => setView('Discover')}>
-            View all <ChevronDown size={14} />
-          </button>
+          {!sectionTitle && (
+            <button className="view-all" onClick={() => setView('Discover')}>
+              View all <ChevronDown size={14} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -120,17 +127,26 @@ export default function TrackSection({
       ) : (
         <div className="empty-state">
           <Disc3 size={34} />
-          <h3>No tracks found</h3>
-          <p>Try a different search or explore the full catalogue.</p>
-          <button
-            className="secondary-btn"
-            onClick={() => {
-              setQuery('');
-              setView('Home');
-            }}
-          >
-            Back to home
-          </button>
+          {sectionTitle ? (
+            <>
+              <h3>No {sectionTitle.toLowerCase()} yet</h3>
+              <p>Songs in this category will appear here.</p>
+            </>
+          ) : (
+            <>
+              <h3>No tracks found</h3>
+              <p>Try a different search or explore the full catalogue.</p>
+              <button
+                className="secondary-btn"
+                onClick={() => {
+                  setQuery('');
+                  setView('Home');
+                }}
+              >
+                Back to home
+              </button>
+            </>
+          )}
         </div>
       )}
     </section>

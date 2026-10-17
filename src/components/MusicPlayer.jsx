@@ -18,6 +18,23 @@ const formatDuration = (seconds) =>
     Math.floor((Number(seconds) || 0) % 60),
   ).padStart(2, '0')}`;
 
+function getYouTubeVideoId(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === 'youtu.be') return parsed.pathname.slice(1);
+    if (
+      ['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(
+        parsed.hostname,
+      )
+    ) {
+      return parsed.searchParams.get('v') || '';
+    }
+  } catch {
+    return '';
+  }
+  return '';
+}
+
 export default function MusicPlayer({
   active,
   tracks,
@@ -34,12 +51,15 @@ export default function MusicPlayer({
 }) {
   const audio = useRef(null);
   const lastPlayRequest = useRef(0);
+  const youtubeVideoId = getYouTubeVideoId(active.audio_url || '');
 
   useEffect(() => {
+    if (youtubeVideoId) return;
     if (audio.current) audio.current.volume = volume;
-  }, [volume]);
+  }, [volume, youtubeVideoId]);
 
   useEffect(() => {
+    if (youtubeVideoId) return;
     if (!audio.current) return;
     if (playing) {
       if (playRequest !== lastPlayRequest.current) {
@@ -51,7 +71,7 @@ export default function MusicPlayer({
     } else {
       audio.current.pause();
     }
-  }, [playing, active, playRequest, setPlaying]);
+  }, [playing, active, playRequest, setPlaying, youtubeVideoId]);
 
   return (
     <footer className="player">
@@ -76,6 +96,16 @@ export default function MusicPlayer({
         </button>
       </div>
 
+      {youtubeVideoId ? (
+        <iframe
+          className="youtube-embed"
+          src={`https://www.youtube-nocookie.com/embed/${youtubeVideoId}?autoplay=${playing ? 1 : 0}&rel=0`}
+          title={`${active.title} by ${active.artist}`}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        />
+      ) : (
       <div className="player-center">
         <div className="player-controls">
           <button
@@ -134,31 +164,36 @@ export default function MusicPlayer({
           <span>{formatDuration(active.duration_seconds)}</span>
         </div>
       </div>
+      )}
 
-      <div className="player-right">
-        <AudioLines size={18} />
-        <Volume2 size={17} />
-        <input
-          aria-label="Volume"
-          type="range"
-          min="0"
-          max="1"
-          step=".01"
-          value={volume}
-          onChange={(event) => setVolume(+event.target.value)}
+      {!youtubeVideoId && (
+        <div className="player-right">
+          <AudioLines size={18} />
+          <Volume2 size={17} />
+          <input
+            aria-label="Volume"
+            type="range"
+            min="0"
+            max="1"
+            step=".01"
+            value={volume}
+            onChange={(event) => setVolume(+event.target.value)}
+          />
+        </div>
+      )}
+
+      {!youtubeVideoId && (
+        <audio
+          ref={audio}
+          src={active.audio_url}
+          onTimeUpdate={(event) => setProgress(event.currentTarget.currentTime)}
+          onEnded={() => {
+            setPlaying(false);
+            const index = tracks.findIndex((track) => track.id === active.id);
+            play(tracks[(index + 1) % tracks.length]);
+          }}
         />
-      </div>
-
-      <audio
-        ref={audio}
-        src={active.audio_url}
-        onTimeUpdate={(event) => setProgress(event.currentTarget.currentTime)}
-        onEnded={() => {
-          setPlaying(false);
-          const index = tracks.findIndex((track) => track.id === active.id);
-          play(tracks[(index + 1) % tracks.length]);
-        }}
-      />
+      )}
     </footer>
   );
 }

@@ -64,3 +64,35 @@ SELECT 'Ocean Eyes', 'Billie Eilish', 'dont smile at me',
   'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=700',
   'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3', 200, 'Indie Pop'
 WHERE NOT EXISTS (SELECT 1 FROM tracks WHERE title = 'Ocean Eyes' AND artist = 'Billie Eilish');
+
+INSERT INTO tracks(title, artist, album, cover_url, audio_url, duration_seconds, genre)
+SELECT title, artist, album, cover_url, audio_url, duration_seconds, 'Marathi'
+FROM (VALUES
+  ('Lallati Bhandar (Full Version)', 'Ajay Gogavale', 'Jogwa',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/bf/9c/8e/bf9c8e49-8689-53fc-7834-a238ab1be45f/886444150750.jpg/600x600bb.jpg',
+    '/audio/marathi-lallati-bhandar-full.mp3', 328),
+  ('Lallati Bhandar (Lyrical Version)', 'Ajay Gogavale', 'Jogwa',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/bf/9c/8e/bf9c8e49-8689-53fc-7834-a238ab1be45f/886444150750.jpg/600x600bb.jpg',
+    '/audio/marathi-lallati-bhandar-lyrical.mp3', 332),
+  ('Kevadyacha Paan Tu', 'Ajay Gogavle, Arya Ambekar', 'Single',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/8a/58/88/8a588802-9830-e3c2-4edc-b3324e4e55c9/8905778891220.jpg/600x600bb.jpg',
+    '/audio/marathi-kevadyacha-paan-tu.mp3', 331),
+  ('Mala Ved Laagale', 'Swapnil Bandodkar, Ketaki Mategaonkar', 'Time Pass',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/7b/42/48/7b42487d-42ca-1b3e-aebe-197beeb1c68b/8718857678465.png/600x600bb.png',
+    '/audio/marathi-mala-ved-laagale.mp3', 288),
+  ('Rani Majhya Malyamandi', 'Avadhoot Gupte, Vaishali Samant', 'Single',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/fe/6a/ef/fe6aef60-76f5-df53-d25d-d5333aa74587/cover.jpg/600x600bb.jpg',
+    '/audio/marathi-rani-majhya-malyamandi.mp3', 356),
+  ('Saaj Hyo Tuza', 'Onkarswaroop', 'Baban',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/72/d6/05/72d60519-7e20-4488-de9a-1938153d694c/8905992761392.jpg/600x600bb.jpg',
+    '/audio/marathi-saaj-hyo-tuza.mp3', 337),
+  ('Tuzya Priticha Vinchu Chawla', 'Ajay Gogavale', 'Fandry',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/c0/82/4e/c0824eaf-fb49-6206-946a-66762b81f037/8718857796664.png/600x600bb.png',
+    '/audio/marathi-tuzya-priticha-vinchu-chawla.mp3', 334),
+  ('Ved Lavla', 'Yashashree Rao, Nihar Shembekar', 'Single',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/d5/ac/30/d5ac30cb-5935-8f02-48c2-5e503a7306a5/820200646590.jpg/600x600bb.jpg',
+    '/audio/marathi-ved-lavla.mp3', 218)
+) AS marathi_tracks(title, artist, album, cover_url, audio_url, duration_seconds)
+WHERE NOT EXISTS (
+  SELECT 1 FROM tracks existing WHERE existing.audio_url = marathi_tracks.audio_url
+);
