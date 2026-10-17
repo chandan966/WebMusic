@@ -12,6 +12,9 @@ export default function TopBar({
   setMobileNav,
   spotifySearch,
   setSpotifySearch,
+  siteName,
+  catalogButtonLabel,
+  setLoginRole,
 }) {
   return (
     <header className="topbar">
@@ -22,7 +25,7 @@ export default function TopBar({
         <Menu size={21} />
       </button>
       <div className="breadcrumbs">
-        <span>WebMusic</span>
+        <span>{siteName || 'WebMusic'}</span>
         <span className="slash">/</span>
         <b>{view.startsWith('Playlist:') ? view.slice(9) : view}</b>
       </div>
@@ -53,7 +56,7 @@ export default function TopBar({
           }
         >
           <Disc3 size={15} />
-          <span>WebMusic</span>
+          <span>{catalogButtonLabel || 'WebMusic'}</span>
         </button>
         {user ? (
           <button
@@ -72,6 +75,7 @@ export default function TopBar({
             className="login-btn"
             onClick={() => {
               setAuthMode('login');
+              setLoginRole('user');
               setModal('auth');
             }}
           >

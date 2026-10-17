@@ -8,12 +8,13 @@ export const runtime = 'nodejs';
 
 export async function POST(request) {
   try {
-    const { email, password } = await readJson(request);
+    const { email, password, loginAs = 'user' } = await readJson(request);
     if (
       typeof email !== 'string' ||
       !email.trim() ||
       typeof password !== 'string' ||
-      !password
+      !password ||
+      !['user', 'admin'].includes(loginAs)
     ) {
       return NextResponse.json(
         { message: 'Email and password are required.' },
@@ -26,7 +27,11 @@ export async function POST(request) {
        FROM users WHERE email = $1`,
       [email.trim().toLowerCase()],
     );
-    if (!rows.length || !(await bcrypt.compare(password, rows[0].password_hash))) {
+    if (
+      !rows.length ||
+      rows[0].role !== loginAs ||
+      !(await bcrypt.compare(password, rows[0].password_hash))
+    ) {
       return NextResponse.json(
         { message: 'Incorrect email or password.' },
         { status: 401 },

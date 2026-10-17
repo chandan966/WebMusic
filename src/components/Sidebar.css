@@ -21,8 +21,9 @@
   font-size: 22px;
   letter-spacing: -1px;
 }
-.brand>span:last-of-type>span {
-  color: var(--red);
+.brand-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .brand-mark {
   width: 34px;

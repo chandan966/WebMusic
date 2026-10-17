@@ -90,6 +90,25 @@
   color: #ff647b;
   font-weight: 700;
 }
+.login-role-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin: -7px 0 15px;
+}
+.login-role-tabs button {
+  padding: 9px;
+  border: 1px solid #ffffff16;
+  border-radius: 8px;
+  background: #ffffff05;
+  color: #aaa3ad;
+  font-size: 10px;
+}
+.login-role-tabs button.active {
+  border-color: #ff315166;
+  background: #ff315112;
+  color: #ff8290;
+}
 .playlist-choice {
   width: 100%;
   display: flex;
@@ -121,4 +140,3 @@
     padding: 27px 22px;
   }
 }
-

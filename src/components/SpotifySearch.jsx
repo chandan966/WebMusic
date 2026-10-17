@@ -16,6 +16,7 @@ export default function SpotifySearch({
   error,
   selectedTrack,
   setSelectedTrack,
+  onAddTrack,
 }) {
   return (
     <section className="spotify-search section-block">
@@ -96,13 +97,23 @@ export default function SpotifySearch({
                     {track.album} · {formatDuration(track.duration_seconds)}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  className="spotify-listen-btn"
-                  onClick={() => setSelectedTrack(track)}
-                >
-                  Listen here
-                </button>
+                {onAddTrack ? (
+                  <button
+                    type="button"
+                    className="spotify-listen-btn"
+                    onClick={() => onAddTrack(track)}
+                  >
+                    Add to WebMusic
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="spotify-listen-btn"
+                    onClick={() => setSelectedTrack(track)}
+                  >
+                    Listen here
+                  </button>
+                )}
                 <a
                   className="spotify-open-link"
                   href={track.spotify_url}

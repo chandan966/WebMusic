@@ -8,6 +8,7 @@ import {
   Clock3,
   Search,
   Sparkles,
+  ShieldCheck,
   X,
 } from 'lucide-react';
 import './Sidebar.css';
@@ -21,6 +22,8 @@ export default function Sidebar({
   mobileNav,
   setMobileNav,
   setModal,
+  user,
+  siteName,
 }) {
   return (
     <aside className={`sidebar ${mobileNav ? 'mobile-open' : ''}`}>
@@ -28,9 +31,7 @@ export default function Sidebar({
         <span className="brand-mark">
           <AudioLines size={22} />
         </span>
-        <span>
-          web<span>music</span>
-        </span>
+        <span className="brand-name">{siteName || 'WebMusic'}</span>
         <button
           className="icon-btn close-mobile"
           onClick={() => setMobileNav(false)}
@@ -80,6 +81,24 @@ export default function Sidebar({
           Search
         </button>
       </nav>
+
+      {user?.role === 'admin' && (
+        <>
+          <div className="nav-label admin-nav-label">ADMINISTRATION</div>
+          <nav>
+            <button
+              className={`nav-item ${view === 'Admin Dashboard' ? 'active' : ''}`}
+              onClick={() => {
+                setView('Admin Dashboard');
+                setMobileNav(false);
+              }}
+            >
+              <ShieldCheck size={18} />
+              Admin dashboard
+            </button>
+          </nav>
+        </>
+      )}
 
       <div className="nav-label library-label">
         YOUR LIBRARY

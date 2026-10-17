@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { ApiError } from './api';
+import { pool } from './db';
 
 function getJwtSecret() {
   const secret = process.env.JWT_SECRET;
@@ -40,4 +41,15 @@ export function requireAuth(request) {
     }
     throw new ApiError('Session expired. Please sign in again.', 401);
   }
+}
+
+export async function requireAdmin(request) {
+  const user = requireAuth(request);
+  const { rows } = await pool.query('SELECT role FROM users WHERE id = $1', [
+    user.id,
+  ]);
+  if (!rows.length || rows[0].role !== 'admin') {
+    throw new ApiError('Admin access is required.', 403);
+  }
+  return user;
 }

@@ -136,6 +136,9 @@
     width: 100%;
     max-width: 350px;
   }
+  .spotify-mode-btn {
+    padding: 9px;
+  }
   .searchbox kbd {
     display: none;
   }

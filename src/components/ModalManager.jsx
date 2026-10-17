@@ -8,6 +8,8 @@ export default function ModalManager({
   setModal,
   authMode,
   setAuthMode,
+  loginRole,
+  setLoginRole,
   auth,
   playlists,
   tracks,
@@ -88,6 +90,23 @@ export default function ModalManager({
                 ? 'Create a free account to start listening to music.'
                 : 'Create an account and build your own soundtrack.'}
           </p>
+          {authMode === 'login' && (
+            <div className="login-role-tabs" aria-label="Choose account type">
+              {[
+                ['user', 'User login'],
+                ['admin', 'Admin login'],
+              ].map(([role, label]) => (
+                <button
+                  type="button"
+                  key={role}
+                  className={loginRole === role ? 'active' : ''}
+                  onClick={() => setLoginRole(role)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
           <form onSubmit={auth} className="auth-form">
             {authMode === 'register' && (
               <label>

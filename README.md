@@ -13,7 +13,19 @@ Requirements: Node.js 20+ and a PostgreSQL database (Neon is supported).
 5. Create the tables and starter tracks with `npm run db:setup`.
 6. Start the app with `npm run dev` and open the URL shown in the terminal.
 
-The API is served by the same app at `/api`: authentication (`/api/auth/register`, `/api/auth/login`), tracks (`/api/tracks`), Spotify search (`/api/spotify/search?q=...`), liked tracks (`/api/tracks/liked`), likes (`/api/tracks/:id/like`), playlists (`/api/playlists`), playlist tracks (`/api/playlists/:id/tracks`), and health (`/api/health`).
+The API is served by the same app at `/api`: authentication (`/api/auth/register`, `/api/auth/login`), tracks (`/api/tracks`), Spotify search (`/api/spotify/search?q=...`), admin song/user/branding management (`/api/admin/...`), public branding (`/api/settings`), liked tracks (`/api/tracks/liked`), likes (`/api/tracks/:id/like`), playlists (`/api/playlists`), playlist tracks (`/api/playlists/:id/tracks`), and health (`/api/health`).
+
+### Admin account
+
+Register a regular account first. Promote only your own account to admin from your PostgreSQL console:
+
+```sql
+UPDATE users
+SET role = 'admin'
+WHERE email = 'your-email@example.com';
+```
+
+Then sign out and use **Admin login** with that account. Public registration never creates admin accounts. Admins can manage catalogue songs, user roles/accounts, and the visible WebMusic/search-button names. If the production database was initialized before the branding settings table was added, run `npm run db:setup` with its `DATABASE_URL` pointed at that database; the schema setup is idempotent.
 
 ## Vercel deployment
 
@@ -23,4 +35,4 @@ The supplied MySQL schema has been translated to PostgreSQL in [`database/schema
 
 The seeded audio URLs are samples. Replace them with audio you own or are licensed to stream.
 
-Spotify search is handled by the server so the client secret is never exposed to the browser. Search results include Spotify metadata and open in Spotify's embedded player; Spotify controls playback and availability.
+Spotify search is handled by the server so the client secret is never exposed to the browser. Search results include Spotify metadata and open in Spotify's embedded player; Spotify controls playback and availability. Admins can add a Spotify search result to the WebMusic catalogue; playback remains inside Spotify's official embed.

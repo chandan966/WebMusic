@@ -40,6 +40,18 @@ function getYouTubeVideoId(url) {
   return '';
 }
 
+function getSpotifyTrackId(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== 'open.spotify.com') return '';
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    const trackIndex = parts.indexOf('track');
+    return trackIndex >= 0 ? parts[trackIndex + 1] || '' : '';
+  } catch {
+    return '';
+  }
+}
+
 export default function MusicPlayer({
   active,
   playing,
@@ -67,15 +79,17 @@ export default function MusicPlayer({
   const audio = useRef(null);
   const lastPlayRequest = useRef(0);
   const youtubeVideoId = getYouTubeVideoId(active.audio_url || '');
+  const spotifyTrackId = getSpotifyTrackId(active.audio_url || '');
+  const embeddedTrack = youtubeVideoId || spotifyTrackId;
   const RepeatIcon = repeatMode === 'one' ? Repeat1 : Repeat;
 
   useEffect(() => {
-    if (youtubeVideoId) return;
+    if (embeddedTrack) return;
     if (audio.current) audio.current.volume = volume;
-  }, [volume, youtubeVideoId]);
+  }, [volume, embeddedTrack]);
 
   useEffect(() => {
-    if (youtubeVideoId) return;
+    if (embeddedTrack) return;
     if (!audio.current) return;
     if (playing) {
       if (playRequest !== lastPlayRequest.current) {
@@ -87,7 +101,7 @@ export default function MusicPlayer({
     } else {
       audio.current.pause();
     }
-  }, [playing, active, playRequest, setPlaying, youtubeVideoId]);
+  }, [playing, active, playRequest, setPlaying, embeddedTrack]);
 
   return (
     <footer className="player">
@@ -212,6 +226,13 @@ export default function MusicPlayer({
           referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
         />
+      ) : spotifyTrackId ? (
+        <iframe
+          className="spotify-player-embed"
+          src={`https://open.spotify.com/embed/track/${encodeURIComponent(spotifyTrackId)}?utm_source=generator&theme=0`}
+          title={`Spotify player for ${active.title} by ${active.artist}`}
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        />
       ) : (
       <div className="player-center">
         <div className="player-controls">
@@ -295,7 +316,7 @@ export default function MusicPlayer({
             <span>{queue.length + upcomingTracks.length}</span>
           )}
         </button>
-        {!youtubeVideoId && (
+        {!embeddedTrack && (
           <>
           <AudioLines size={18} />
           <Volume2 size={17} />
@@ -312,7 +333,7 @@ export default function MusicPlayer({
         )}
       </div>
 
-      {!youtubeVideoId && (
+      {!embeddedTrack && (
         <audio
           ref={audio}
           src={active.audio_url}

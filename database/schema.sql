@@ -41,6 +41,15 @@ CREATE TABLE IF NOT EXISTS liked_tracks (
   PRIMARY KEY (user_id, track_id)
 );
 
+CREATE TABLE IF NOT EXISTS site_settings (
+  setting_key VARCHAR(80) PRIMARY KEY,
+  setting_value VARCHAR(200) NOT NULL
+);
+
+INSERT INTO site_settings(setting_key, setting_value)
+VALUES ('site_name', 'WebMusic'), ('catalog_button_label', 'WebMusic')
+ON CONFLICT (setting_key) DO NOTHING;
+
 INSERT INTO tracks(title, artist, album, cover_url, audio_url, duration_seconds, genre)
 SELECT title, artist, album, cover_url, audio_url, duration_seconds, 'Marathi'
 FROM (VALUES

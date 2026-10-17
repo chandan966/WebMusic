@@ -13,6 +13,7 @@ import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
 import ProfileSection from './components/ProfileSection';
 import SpotifySearch from './components/SpotifySearch';
+import AdminDashboard from './components/AdminDashboard';
 import TopBar from './components/TopBar';
 import TrackSection from './components/TrackSection';
 
@@ -64,6 +65,11 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [modal, setModal] = useState('');
   const [authMode, setAuthMode] = useState('login');
+  const [loginRole, setLoginRole] = useState('user');
+  const [siteBranding, setSiteBranding] = useState({
+    site_name: 'WebMusic',
+    catalog_button_label: 'WebMusic',
+  });
   const [notice, setNotice] = useState('');
   const [liked, setLiked] = useState([]);
   const [recentlyPlayed, setRecentlyPlayed] = useState([]);
@@ -142,6 +148,18 @@ export default function App() {
     }
     setHydrated(true);
   }, []);
+
+  useEffect(() => {
+    request('/settings')
+      .then((settings) =>
+        setSiteBranding((current) => ({ ...current, ...settings })),
+      )
+      .catch((error) => setNotice(`Could not load site branding: ${error.message}`));
+  }, []);
+
+  useEffect(() => {
+    document.title = siteBranding.site_name || 'WebMusic';
+  }, [siteBranding.site_name]);
 
   useEffect(() => {
     request('/tracks')
@@ -440,6 +458,7 @@ export default function App() {
   async function auth(event) {
     event.preventDefault();
     const payload = Object.fromEntries(new FormData(event.currentTarget));
+    if (authMode === 'login') payload.loginAs = loginRole;
 
     try {
       const data = await request(`/auth/${authMode}`, {
@@ -448,6 +467,7 @@ export default function App() {
       });
       localStorage.setItem('webmusic_token', data.token);
       setUser(data.user);
+      setView(data.user.role === 'admin' ? 'Admin Dashboard' : 'Home');
       setPlaying(false);
       setProgress(0);
       setModal('');
@@ -478,6 +498,8 @@ export default function App() {
           mobileNav={mobileNav}
           setMobileNav={setMobileNav}
           setModal={setModal}
+          user={user}
+          siteName={siteBranding.site_name}
         />
 
         <main className="main-panel">
@@ -492,9 +514,33 @@ export default function App() {
             setMobileNav={setMobileNav}
             spotifySearch={spotifySearch}
             setSpotifySearch={setSpotifySearch}
+            siteName={siteBranding.site_name}
+            catalogButtonLabel={siteBranding.catalog_button_label}
+            setLoginRole={setLoginRole}
           />
           <div className="content-scroll">
-            {view === 'Profile' && user ? (
+            {view === 'Admin Dashboard' && user?.role === 'admin' ? (
+              <AdminDashboard
+                currentUser={user}
+                setNotice={setNotice}
+                onBranding={(settings) =>
+                  setSiteBranding((current) => ({ ...current, ...settings }))
+                }
+                onTracksChange={(nextTracks) => {
+                  setTracks(nextTracks);
+                  setPlayContext(nextTracks);
+                  if (
+                    !nextTracks.some(
+                      (track) => String(track.id) === String(active.id),
+                    )
+                  ) {
+                    setPlaying(false);
+                    setProgress(0);
+                    setActive(nextTracks[0] || demoTracks[0]);
+                  }
+                }}
+              />
+            ) : view === 'Profile' && user ? (
               <ProfileSection
                 user={user}
                 likedCount={liked.length}
@@ -617,6 +663,8 @@ export default function App() {
         setModal={setModal}
         authMode={authMode}
         setAuthMode={setAuthMode}
+        loginRole={loginRole}
+        setLoginRole={setLoginRole}
         auth={auth}
         playlists={playlists}
         tracks={tracks}
