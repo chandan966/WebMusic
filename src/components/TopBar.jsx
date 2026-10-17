@@ -1,4 +1,4 @@
-import { CircleUserRound, Menu, Search } from 'lucide-react';
+import { CircleUserRound, Disc3, Menu, Search } from 'lucide-react';
 import './TopBar.css';
 
 export default function TopBar({
@@ -10,6 +10,8 @@ export default function TopBar({
   query,
   setQuery,
   setMobileNav,
+  spotifySearch,
+  setSpotifySearch,
 }) {
   return (
     <header className="topbar">
@@ -31,10 +33,28 @@ export default function TopBar({
             className="search-input"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search songs, artists, albums..."
+            placeholder={
+              spotifySearch
+                ? 'Search Spotify songs, artists, albums...'
+                : 'Search songs, artists, albums...'
+            }
           />
           <kbd>⌘ K</kbd>
         </label>
+        <button
+          className={`spotify-mode-btn ${spotifySearch ? 'selected' : ''}`}
+          type="button"
+          onClick={() => setSpotifySearch((current) => !current)}
+          aria-pressed={spotifySearch}
+          title={
+            spotifySearch
+              ? 'Search your WebMusic library'
+              : 'Search Spotify catalogue'
+          }
+        >
+          <Disc3 size={15} />
+          <span>Spotify</span>
+        </button>
         {user ? (
           <button
             className="profile-pill"

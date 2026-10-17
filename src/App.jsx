@@ -12,6 +12,7 @@ import NoticeToast from './components/NoticeToast';
 import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
 import ProfileSection from './components/ProfileSection';
+import SpotifySearch from './components/SpotifySearch';
 import TopBar from './components/TopBar';
 import TrackSection from './components/TrackSection';
 
@@ -54,6 +55,11 @@ export default function App() {
   const [repeatMode, setRepeatMode] = useState('off');
   const [queueOpen, setQueueOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [spotifySearch, setSpotifySearch] = useState(false);
+  const [spotifyTracks, setSpotifyTracks] = useState([]);
+  const [spotifyLoading, setSpotifyLoading] = useState(false);
+  const [spotifyError, setSpotifyError] = useState('');
+  const [selectedSpotifyTrack, setSelectedSpotifyTrack] = useState(null);
   const [view, setView] = useState('Home');
   const [user, setUser] = useState(null);
   const [modal, setModal] = useState('');
@@ -65,6 +71,55 @@ export default function App() {
   const [hydrated, setHydrated] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
   const authRequired = hydrated && !user;
+
+  useEffect(() => {
+    if (!spotifySearch) return undefined;
+
+    const searchQuery = query.trim();
+    if (!searchQuery) {
+      setSpotifyTracks([]);
+      setSpotifyError('');
+      setSpotifyLoading(false);
+      setSelectedSpotifyTrack(null);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
+      setSpotifyLoading(true);
+      setSpotifyError('');
+
+      try {
+        const response = await fetch(
+          `/api/spotify/search?q=${encodeURIComponent(searchQuery)}`,
+          { signal: controller.signal },
+        );
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data?.message || 'Spotify search failed.');
+        }
+        if (!Array.isArray(data?.tracks)) {
+          throw new Error('Spotify returned an invalid search response.');
+        }
+
+        setSpotifyTracks(data.tracks);
+        setSelectedSpotifyTrack(null);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          setSpotifyError(error.message);
+          setSpotifyTracks([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) setSpotifyLoading(false);
+      }
+    }, 350);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [query, spotifySearch]);
 
   useEffect(() => {
     try {
@@ -435,6 +490,8 @@ export default function App() {
             query={query}
             setQuery={setQuery}
             setMobileNav={setMobileNav}
+            spotifySearch={spotifySearch}
+            setSpotifySearch={setSpotifySearch}
           />
           <div className="content-scroll">
             {view === 'Profile' && user ? (
@@ -446,62 +503,80 @@ export default function App() {
               />
             ) : (
               <>
-                {['Home', 'Discover'].includes(view) && !query && (
-                  <Hero
-                    tracks={tracks}
-                    play={play}
-                    setView={setView}
-                    user={user}
-                    recentlyPlayed={recentlyPlayed}
+                {spotifySearch ? (
+                  <SpotifySearch
+                    query={query.trim()}
+                    tracks={spotifyTracks}
+                    loading={spotifyLoading}
+                    error={spotifyError}
+                    selectedTrack={selectedSpotifyTrack}
+                    setSelectedTrack={setSelectedSpotifyTrack}
                   />
-                )}
-                {view === 'Home' && !query ? (
-                  homeCategories.map((category) => (
-                    <TrackSection
-                      key={category.title}
-                      sectionTitle={category.title}
-                      visible={tracks.filter((track) =>
-                        category.matches(
-                          String(track.genre || '').toLowerCase(),
-                        ),
-                      )}
-                      active={active}
-                      isLiked={isLiked}
-                      like={like}
-                      play={(track) => playFromContext(track, tracks.filter((item) =>
-                        category.matches(
-                          String(item.genre || '').toLowerCase(),
-                        ),
-                      ))}
-                      addToQueue={addToQueue}
-                      setModal={setModal}
-                      query={query}
-                      view={view}
-                      setQuery={setQuery}
-                      setView={setView}
-                    />
-                  ))
                 ) : (
-                  <TrackSection
-                    visible={visible}
-                    active={active}
-                    isLiked={isLiked}
-                    like={like}
-                    play={(track) => playFromContext(track, visible)}
-                    addToQueue={addToQueue}
-                    setModal={setModal}
-                    query={query}
-                    view={view}
-                    setQuery={setQuery}
-                    setView={setView}
-                  />
+                  <>
+                    {['Home', 'Discover'].includes(view) && !query && (
+                      <Hero
+                        tracks={tracks}
+                        play={play}
+                        setView={setView}
+                        user={user}
+                        recentlyPlayed={recentlyPlayed}
+                      />
+                    )}
+                    {view === 'Home' && !query ? (
+                      homeCategories.map((category) => (
+                        <TrackSection
+                          key={category.title}
+                          sectionTitle={category.title}
+                          visible={tracks.filter((track) =>
+                            category.matches(
+                              String(track.genre || '').toLowerCase(),
+                            ),
+                          )}
+                          active={active}
+                          isLiked={isLiked}
+                          like={like}
+                          play={(track) =>
+                            playFromContext(
+                              track,
+                              tracks.filter((item) =>
+                                category.matches(
+                                  String(item.genre || '').toLowerCase(),
+                                ),
+                              ),
+                            )
+                          }
+                          addToQueue={addToQueue}
+                          setModal={setModal}
+                          query={query}
+                          view={view}
+                          setQuery={setQuery}
+                          setView={setView}
+                        />
+                      ))
+                    ) : (
+                      <TrackSection
+                        visible={visible}
+                        active={active}
+                        isLiked={isLiked}
+                        like={like}
+                        play={(track) => playFromContext(track, visible)}
+                        addToQueue={addToQueue}
+                        setModal={setModal}
+                        query={query}
+                        view={view}
+                        setQuery={setQuery}
+                        setView={setView}
+                      />
+                    )}
+                    <MoodStrip
+                      setView={setView}
+                      setQuery={setQuery}
+                      view={view}
+                    />
+                    <Footer />
+                  </>
                 )}
-                <MoodStrip
-                  setView={setView}
-                  setQuery={setQuery}
-                  view={view}
-                />
-                <Footer />
               </>
             )}
           </div>
