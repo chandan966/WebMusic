@@ -185,7 +185,18 @@
   letter-spacing: 2px;
   font-size: 12px;
 }
-.more-btn:hover {
+.queue-track-btn, .download-track-btn {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #8b828e;
+  padding: 3px;
+}
+.download-track-btn {
+  text-decoration: none;
+}
+.more-btn:hover, .queue-track-btn:hover, .download-track-btn:hover {
   color: #fff;
 }
 .empty-state {

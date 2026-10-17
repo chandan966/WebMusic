@@ -4,8 +4,13 @@ import {
   Heart,
   Pause,
   Play,
+  ListMusic,
+  Repeat,
+  Repeat1,
+  Shuffle,
   SkipBack,
   SkipForward,
+  Trash2,
   Volume2,
 } from 'lucide-react';
 import './MusicPlayer.css';
@@ -37,7 +42,6 @@ function getYouTubeVideoId(url) {
 
 export default function MusicPlayer({
   active,
-  tracks,
   playing,
   setPlaying,
   playRequest,
@@ -48,10 +52,22 @@ export default function MusicPlayer({
   isLiked,
   like,
   play,
+  playNext,
+  playPrevious,
+  shuffle,
+  toggleShuffle,
+  repeatMode,
+  setRepeatMode,
+  queue,
+  upcomingTracks,
+  removeFromQueue,
+  queueOpen,
+  setQueueOpen,
 }) {
   const audio = useRef(null);
   const lastPlayRequest = useRef(0);
   const youtubeVideoId = getYouTubeVideoId(active.audio_url || '');
+  const RepeatIcon = repeatMode === 'one' ? Repeat1 : Repeat;
 
   useEffect(() => {
     if (youtubeVideoId) return;
@@ -75,6 +91,97 @@ export default function MusicPlayer({
 
   return (
     <footer className="player">
+      {queueOpen && (
+        <section className="queue-panel" aria-label="Playback queue">
+          <div className="queue-heading">
+            <div>
+              <span className="eyebrow muted-eyebrow">UP NEXT</span>
+              <h2>Queue</h2>
+            </div>
+            <button
+              className="queue-close"
+              onClick={() => setQueueOpen(false)}
+              aria-label="Close queue"
+            >
+              ×
+            </button>
+          </div>
+          <div className="queue-now-playing">
+            <img
+              src={active.cover_url || fallback}
+              alt=""
+              onError={(event) => (event.currentTarget.src = fallback)}
+            />
+            <div>
+              <span>NOW PLAYING</span>
+              <b>{active.title}</b>
+              <small>{active.artist}</small>
+            </div>
+          </div>
+          {queue.length || upcomingTracks.length ? (
+            <div className="queue-list">
+              {queue.map((track, index) => (
+                <div className="queue-item" key={`queue-${track.id}-${index}`}>
+                  <button
+                    className="queue-item-play"
+                    onClick={() => play(track)}
+                    aria-label={`Play ${track.title}`}
+                  >
+                    <Play size={14} fill="currentColor" />
+                  </button>
+                  <img
+                    src={track.cover_url || fallback}
+                    alt=""
+                    onError={(event) => (event.currentTarget.src = fallback)}
+                  />
+                  <div className="queue-item-text">
+                    <b>{track.title}</b>
+                    <span>{track.artist}</span>
+                  </div>
+                  <button
+                    className="queue-remove"
+                    onClick={() => removeFromQueue(track)}
+                    aria-label={`Remove ${track.title} from queue`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+              {upcomingTracks.length > 0 && queue.length > 0 && (
+                <div className="queue-divider">NEXT IN THIS MIX</div>
+              )}
+              {upcomingTracks.map((track, index) => (
+                <div
+                  className="queue-item"
+                  key={`context-${track.id}-${index}`}
+                >
+                  <button
+                    className="queue-item-play"
+                    onClick={() => play(track)}
+                    aria-label={`Play ${track.title}`}
+                  >
+                    <Play size={14} fill="currentColor" />
+                  </button>
+                  <img
+                    src={track.cover_url || fallback}
+                    alt=""
+                    onError={(event) => (event.currentTarget.src = fallback)}
+                  />
+                  <div className="queue-item-text">
+                    <b>{track.title}</b>
+                    <span>{track.artist}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="queue-empty">
+              Nothing is up next. Add songs with the queue button on any track.
+            </p>
+          )}
+        </section>
+      )}
+
       <div className="player-track">
         <img
           src={active.cover_url || fallback}
@@ -109,23 +216,25 @@ export default function MusicPlayer({
       <div className="player-center">
         <div className="player-controls">
           <button
+            className={`control-btn player-mode-btn ${shuffle ? 'selected' : ''}`}
+            onClick={toggleShuffle}
+            aria-label={shuffle ? 'Turn shuffle off' : 'Turn shuffle on'}
+            aria-pressed={shuffle}
+            title="Shuffle"
+          >
+            <Shuffle size={16} />
+          </button>
+          <button
             className="control-btn"
-            onClick={() =>
-              play(
-                tracks[
-                  Math.max(
-                    0,
-                    tracks.findIndex((track) => track.id === active.id) - 1,
-                  )
-                ],
-              )
-            }
+            onClick={playPrevious}
+            aria-label="Previous track"
           >
             <SkipBack size={17} fill="currentColor" />
           </button>
           <button
             className="play-main"
             onClick={() => setPlaying((current) => !current)}
+            aria-label={playing ? 'Pause' : 'Play'}
           >
             {playing ? (
               <Pause size={19} fill="currentColor" />
@@ -135,16 +244,23 @@ export default function MusicPlayer({
           </button>
           <button
             className="control-btn"
-            onClick={() =>
-              play(
-                tracks[
-                  (tracks.findIndex((track) => track.id === active.id) + 1) %
-                    tracks.length
-                ],
-              )
-            }
+            onClick={() => playNext(false)}
+            aria-label="Next track"
           >
             <SkipForward size={17} fill="currentColor" />
+          </button>
+          <button
+            className={`control-btn player-mode-btn ${repeatMode !== 'off' ? 'selected' : ''}`}
+            onClick={() =>
+              setRepeatMode((current) =>
+                current === 'off' ? 'all' : current === 'all' ? 'one' : 'off',
+              )
+            }
+            aria-label={`Repeat ${repeatMode}`}
+            aria-pressed={repeatMode !== 'off'}
+            title={`Repeat ${repeatMode}`}
+          >
+            <RepeatIcon size={16} />
           </button>
         </div>
         <div className="timeline">
@@ -166,8 +282,21 @@ export default function MusicPlayer({
       </div>
       )}
 
-      {!youtubeVideoId && (
-        <div className="player-right">
+      <div className="player-right">
+        <button
+          className={`control-btn queue-toggle ${queueOpen ? 'selected' : ''}`}
+          onClick={() => setQueueOpen((current) => !current)}
+          aria-label={`Open queue${queue.length + upcomingTracks.length ? `, ${queue.length + upcomingTracks.length} songs` : ''}`}
+          aria-pressed={queueOpen}
+          title="Queue"
+        >
+          <ListMusic size={17} />
+          {queue.length + upcomingTracks.length > 0 && (
+            <span>{queue.length + upcomingTracks.length}</span>
+          )}
+        </button>
+        {!youtubeVideoId && (
+          <>
           <AudioLines size={18} />
           <Volume2 size={17} />
           <input
@@ -179,19 +308,16 @@ export default function MusicPlayer({
             value={volume}
             onChange={(event) => setVolume(+event.target.value)}
           />
-        </div>
-      )}
+          </>
+        )}
+      </div>
 
       {!youtubeVideoId && (
         <audio
           ref={audio}
           src={active.audio_url}
           onTimeUpdate={(event) => setProgress(event.currentTarget.currentTime)}
-          onEnded={() => {
-            setPlaying(false);
-            const index = tracks.findIndex((track) => track.id === active.id);
-            play(tracks[(index + 1) % tracks.length]);
-          }}
+          onEnded={() => playNext(true)}
         />
       )}
     </footer>

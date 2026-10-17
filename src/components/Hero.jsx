@@ -4,7 +4,24 @@ import './Hero.css';
 const fallback =
   'https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=700';
 
-export default function Hero({ tracks, play, setView }) {
+export default function Hero({
+  tracks,
+  play,
+  setView,
+  user,
+  recentlyPlayed = [],
+}) {
+  const featuredTrack =
+    tracks.find(
+      (track) => String(track.id) === String(recentlyPlayed[0]),
+    ) || tracks[0];
+  const hasListeningHistory = Boolean(
+    user &&
+      tracks.some(
+        (track) => String(track.id) === String(recentlyPlayed[0]),
+      ),
+  );
+
   return (
     <section className="hero">
       <div className="hero-copy">
@@ -18,16 +35,20 @@ export default function Hero({ tracks, play, setView }) {
         </h1>
         <p>Discover sounds that move you. Your next obsession starts here.</p>
         <div className="hero-buttons">
-          <button className="primary-btn" onClick={() => play(tracks[0])}>
+          <button
+            className="primary-btn"
+            onClick={() => play(hasListeningHistory ? featuredTrack : tracks[0])}
+            disabled={!tracks.length}
+          >
             <Play size={17} fill="currentColor" />
-            Start listening
+            {hasListeningHistory ? 'Resume listening' : 'Start listening'}
           </button>
           <button
             className="secondary-btn"
             onClick={() => setView('Discover')}
           >
             <Sparkles size={16} />
-            Explore music
+            {user ? 'Browse music' : 'Explore music'}
           </button>
         </div>
         <div className="hero-stats">
@@ -51,12 +72,12 @@ export default function Hero({ tracks, play, setView }) {
         </div>
         <div className="floating-card">
           <img
-            src={tracks[2]?.cover_url || fallback}
+            src={featuredTrack?.cover_url || fallback}
             alt="Album cover"
           />
           <div>
-            <b>{tracks[2]?.title || 'Golden Hour'}</b>
-            <small>{tracks[2]?.artist || 'JVKE'}</small>
+            <b>{featuredTrack?.title || 'Find your next favorite'}</b>
+            <small>{featuredTrack?.artist || 'Explore WebMusic'}</small>
           </div>
           <span className="equalizer">
             <i />

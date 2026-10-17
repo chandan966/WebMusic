@@ -1,7 +1,12 @@
 import { ChevronDown, Mic2 } from 'lucide-react';
 import './MoodStrip.css';
 
-export default function MoodStrip({ setView }) {
+export default function MoodStrip({ setView, setQuery, view }) {
+  function exploreMoods() {
+    setQuery('');
+    setView('Discover');
+  }
+
   return (
     <section className="mood-strip">
       <div className="mood-icon">
@@ -9,10 +14,15 @@ export default function MoodStrip({ setView }) {
       </div>
       <div>
         <span className="eyebrow muted-eyebrow">CURATED FOR YOU</span>
-        <h3>Find your frequency.</h3>
-        <p>From late-night focus to main-character energy.</p>
+        <h3>Find your song.</h3>
+        <p>Discover a new favorite for every moment.</p>
       </div>
-      <button onClick={() => setView('Discover')}>
+      <button
+        className={view === 'Discover' ? 'is-active' : ''}
+        onClick={exploreMoods}
+        aria-label="Explore moods in Discover"
+        aria-pressed={view === 'Discover'}
+      >
         Explore moods <ChevronDown size={15} />
       </button>
       <div className="mood-lines">

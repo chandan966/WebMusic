@@ -1,11 +1,11 @@
 import {
   AudioLines,
-  ChevronDown,
   Heart,
   Home,
   ListMusic,
   Menu,
   Plus,
+  Clock3,
   Search,
   Sparkles,
   X,
@@ -16,11 +16,11 @@ export default function Sidebar({
   view,
   setView,
   liked,
+  recentlyPlayedCount,
   playlists,
   mobileNav,
   setMobileNav,
   setModal,
-  setNotice,
 }) {
   return (
     <aside className={`sidebar ${mobileNav ? 'mobile-open' : ''}`}>
@@ -41,6 +41,17 @@ export default function Sidebar({
 
       <div className="nav-label">MENU</div>
       <nav>
+        <button
+          className={`nav-item ${view === 'Recently Played' ? 'active' : ''}`}
+          onClick={() => {
+            setView('Recently Played');
+            setMobileNav(false);
+          }}
+        >
+          <Clock3 size={18} />
+          Recently Played
+          <span className="count">{recentlyPlayedCount}</span>
+        </button>
         <button
           className={`nav-item ${view === 'Home' ? 'active' : ''}`}
           onClick={() => {
@@ -100,16 +111,6 @@ export default function Sidebar({
       </nav>
 
       <div className="sidebar-bottom">
-        <div className="upgrade-card">
-          <span className="upgrade-tag">WEBMUSIC PLUS</span>
-          <h3>Music without limits.</h3>
-          <p>Your next favorite song is waiting.</p>
-          <button
-            onClick={() => setNotice('Plus membership is a future feature.')}
-          >
-            Explore Plus <ChevronDown size={15} />
-          </button>
-        </div>
         <div className="sidebar-footer">
           <span className="status-dot" />
           All systems sounding good

@@ -3,7 +3,7 @@ import './Footer.css';
 export default function PageFooter() {
   return (
     <footer className="page-footer">
-      <span>© 2026 WEBMUSIC STUDIO</span>
+      <span>© 2026 WEBMUSIC </span>
       <span>
         @webdevchandan <b>♥</b>
       </span>

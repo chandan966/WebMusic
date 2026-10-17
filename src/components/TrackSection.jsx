@@ -1,4 +1,11 @@
-import { ChevronDown, Disc3, Heart, Play } from 'lucide-react';
+import {
+  ChevronDown,
+  Disc3,
+  Download,
+  Heart,
+  ListPlus,
+  Play,
+} from 'lucide-react';
 import './TrackSection.css';
 
 const fallback =
@@ -15,6 +22,7 @@ export default function TrackSection({
   isLiked,
   like,
   play,
+  addToQueue,
   setModal,
   query,
   view,
@@ -33,6 +41,8 @@ export default function TrackSection({
               ? 'SEARCH RESULTS'
               : view === 'Liked Songs'
                 ? 'YOUR COLLECTION'
+                : view === 'Recently Played'
+                  ? 'YOUR LISTENING HISTORY'
                 : view.startsWith('Playlist:')
                   ? 'YOUR MIX'
                   : 'MADE FOR YOUR MOOD'}
@@ -44,6 +54,8 @@ export default function TrackSection({
               `Results for “${query}”`
             ) : view === 'Liked Songs' ? (
               'Liked Songs'
+            ) : view === 'Recently Played' ? (
+              'Recently Played'
             ) : view.startsWith('Playlist:') ? (
               view.slice(9)
             ) : view === 'Discover' ? (
@@ -113,9 +125,31 @@ export default function TrackSection({
                 <p>{track.artist}</p>
                 <div className="track-bottom">
                   <span className="genre-tag">{track.genre || 'Pop'}</span>
+                  {/\.mp3(?:[?#]|$)/i.test(track.audio_url || '') && (
+                    <a
+                      className="download-track-btn"
+                      href={track.audio_url}
+                      download={`${track.title} - ${track.artist}.mp3`}
+                      onClick={(event) => event.stopPropagation()}
+                      aria-label={`Download ${track.title}`}
+                      title="Download song"
+                    >
+                      <Download size={15} />
+                    </a>
+                  )}
+                  <button
+                    className="queue-track-btn"
+                    onClick={() => addToQueue(track)}
+                    aria-label={`Add ${track.title} to queue`}
+                    title="Add to queue"
+                  >
+                    <ListPlus size={15} />
+                  </button>
                   <button
                     className="more-btn"
                     onClick={() => setModal(`add:${track.id}`)}
+                    aria-label={`Add ${track.title} to a playlist`}
+                    title="Add to playlist"
                   >
                     •••
                   </button>
@@ -134,8 +168,16 @@ export default function TrackSection({
             </>
           ) : (
             <>
-              <h3>No tracks found</h3>
-              <p>Try a different search or explore the full catalogue.</p>
+              <h3>
+                {view === 'Recently Played'
+                  ? 'No listening history yet'
+                  : 'No tracks found'}
+              </h3>
+              <p>
+                {view === 'Recently Played'
+                  ? 'Songs you play will show up here.'
+                  : 'Try a different search or explore the full catalogue.'}
+              </p>
               <button
                 className="secondary-btn"
                 onClick={() => {

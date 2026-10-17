@@ -107,43 +107,6 @@
 .sidebar-bottom {
   margin-top: auto;
 }
-.upgrade-card {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid #ff315126;
-  background: linear-gradient(145deg,#28121a,#171116);
-  border-radius: 14px;
-  padding: 15px 13px;
-  margin-top: 26px;
-}
-.upgrade-tag {
-  font-size: 8px;
-  letter-spacing: 1.4px;
-  color: #ff7888;
-  font-weight: 700;
-}
-.upgrade-card h3 {
-  font-family: 'Space Grotesk';
-  font-size: 16px;
-  margin: 9px 0 5px;
-}
-.upgrade-card p {
-  color: #a49ba1;
-  font-size: 10px;
-  line-height: 1.6;
-  margin: 0 0 14px;
-}
-.upgrade-card button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  border: 0;
-  background: var(--red);
-  padding: 9px 11px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 700;
-}
 .sidebar-footer {
   font-size: 9px;
   color: #6d6a74;
@@ -190,4 +153,3 @@
     margin-left: auto;
   }
 }
-

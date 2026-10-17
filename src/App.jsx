@@ -23,6 +23,22 @@ const homeCategories = [
   },
 ];
 
+function shuffledTracks(tracks, excludedId) {
+  const shuffled = tracks.filter(
+    (track) => String(track.id) !== String(excludedId),
+  );
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [
+      shuffled[swapIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
+}
+
 export default function App() {
   const [tracks, setTracks] = useState(demoTracks);
   const [active, setActive] = useState(demoTracks[0]);
@@ -30,6 +46,13 @@ export default function App() {
   const [playRequest, setPlayRequest] = useState(0);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(0.8);
+  const [playContext, setPlayContext] = useState(demoTracks);
+  const [queue, setQueue] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [shuffle, setShuffle] = useState(false);
+  const [shuffleOrder, setShuffleOrder] = useState([]);
+  const [repeatMode, setRepeatMode] = useState('off');
+  const [queueOpen, setQueueOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [view, setView] = useState('Home');
   const [user, setUser] = useState(null);
@@ -37,6 +60,7 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login');
   const [notice, setNotice] = useState('');
   const [liked, setLiked] = useState([]);
+  const [recentlyPlayed, setRecentlyPlayed] = useState([]);
   const [playlists, setPlaylists] = useState([]);
   const [hydrated, setHydrated] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
@@ -46,6 +70,9 @@ export default function App() {
     try {
       setUser(JSON.parse(localStorage.getItem('webmusic_user') || 'null'));
       setLiked(JSON.parse(localStorage.getItem('webmusic_liked') || '[]'));
+      setRecentlyPlayed(
+        JSON.parse(localStorage.getItem('webmusic_recently_played') || '[]'),
+      );
       setPlaylists(
         JSON.parse(localStorage.getItem('webmusic_playlists') || '[]').map(
           (playlist, index) => ({
@@ -66,6 +93,7 @@ export default function App() {
       .then((data) => {
         if (data.length) {
           setTracks(data);
+          setPlayContext(data);
           setActive(
             (current) =>
               data.find((track) => track.id === current.id) || data[0],
@@ -78,10 +106,14 @@ export default function App() {
   useEffect(() => {
     if (!hydrated) return;
     localStorage.setItem('webmusic_liked', JSON.stringify(liked));
+    localStorage.setItem(
+      'webmusic_recently_played',
+      JSON.stringify(recentlyPlayed),
+    );
     localStorage.setItem('webmusic_playlists', JSON.stringify(playlists));
     if (user) localStorage.setItem('webmusic_user', JSON.stringify(user));
     else localStorage.removeItem('webmusic_user');
-  }, [hydrated, liked, playlists, user]);
+  }, [hydrated, liked, playlists, recentlyPlayed, user]);
 
   useEffect(() => {
     if (!hydrated || !user) return;
@@ -116,6 +148,14 @@ export default function App() {
       );
     }
 
+    if (view === 'Recently Played') {
+      filteredTracks = recentlyPlayed
+        .map((id) =>
+          tracks.find((track) => String(track.id) === String(id)),
+        )
+        .filter(Boolean);
+    }
+
     if (view.startsWith('Playlist:')) {
       const playlist = playlists.find(
         (item) => item.name === view.slice(9),
@@ -136,14 +176,143 @@ export default function App() {
     }
 
     return filteredTracks;
-  }, [tracks, view, liked, playlists, query]);
+  }, [tracks, view, liked, playlists, recentlyPlayed, query]);
+
+  const upcomingTracks = useMemo(() => {
+    if (shuffle) {
+      if (shuffleOrder.length) return shuffleOrder;
+      return repeatMode === 'all'
+        ? shuffledTracks(playContext, active.id)
+        : [];
+    }
+
+    const currentIndex = playContext.findIndex(
+      (track) => String(track.id) === String(active.id),
+    );
+    const nextTracks =
+      currentIndex < 0
+        ? [...playContext]
+        : playContext.slice(currentIndex + 1);
+
+    if (repeatMode === 'all' && currentIndex >= 0) {
+      nextTracks.push(...playContext.slice(0, currentIndex));
+    }
+
+    return nextTracks;
+  }, [active.id, playContext, repeatMode, shuffle, shuffleOrder]);
 
   function play(track) {
     if (!track) return;
+    setPlayContext(tracks);
+    setShuffleOrder(shuffle ? shuffledTracks(tracks, track.id) : []);
+    setQueue([]);
+    setHistory([]);
+    startTrack(track);
+  }
+
+  function startTrack(track) {
     setActive(track);
+    setRecentlyPlayed((current) => [
+      String(track.id),
+      ...current.filter((id) => String(id) !== String(track.id)),
+    ].slice(0, 20));
     setPlaying(true);
     setProgress(0);
     setPlayRequest((requestId) => requestId + 1);
+  }
+
+  function playFromContext(track, context) {
+    if (!track) return;
+    setPlayContext(context);
+    setShuffleOrder(shuffle ? shuffledTracks(context, track.id) : []);
+    setQueue([]);
+    setHistory([]);
+    startTrack(track);
+  }
+
+  function addToQueue(track) {
+    if (!track || String(track.id) === String(active.id)) return;
+    setQueue((current) =>
+      current.some((item) => String(item.id) === String(track.id))
+        ? current
+        : [...current, track],
+    );
+    setShuffleOrder((current) =>
+      current.filter((item) => String(item.id) !== String(track.id)),
+    );
+    setNotice(`Added “${track.title}” to your queue`);
+  }
+
+  function toggleShuffle() {
+    if (shuffle) {
+      setShuffle(false);
+      setShuffleOrder([]);
+      return;
+    }
+
+    setShuffleOrder(shuffledTracks(playContext, active.id));
+    setShuffle(true);
+  }
+
+  function playNext(automatic = false) {
+    if (automatic && repeatMode === 'one') {
+      startTrack(active);
+      return;
+    }
+
+    if (queue.length) {
+      setHistory((current) => [...current, active]);
+      const [next, ...remaining] = queue;
+      setQueue(remaining);
+      startTrack(next);
+      return;
+    }
+
+    const nextTrack = upcomingTracks[0];
+
+    if (nextTrack) {
+      setHistory((current) => [...current, active]);
+      if (shuffle) {
+        setShuffleOrder((current) =>
+          current.length ? current.slice(1) : upcomingTracks.slice(1),
+        );
+      }
+      startTrack(nextTrack);
+    } else {
+      setPlaying(false);
+    }
+  }
+
+  function playPrevious() {
+    if (progress > 3) {
+      startTrack(active);
+      return;
+    }
+
+    const previous = history[history.length - 1];
+    if (previous) {
+      setHistory((current) => current.slice(0, -1));
+      setQueue((current) => [active, ...current]);
+      startTrack(previous);
+      return;
+    }
+
+    const currentIndex = playContext.findIndex(
+      (track) => String(track.id) === String(active.id),
+    );
+    if (currentIndex > 0) startTrack(playContext[currentIndex - 1]);
+    else startTrack(active);
+  }
+
+  function playQueued(track) {
+    setQueue((current) =>
+      current.filter((item) => String(item.id) !== String(track.id)),
+    );
+    setShuffleOrder((current) =>
+      current.filter((item) => String(item.id) !== String(track.id)),
+    );
+    setHistory((current) => [...current, active]);
+    startTrack(track);
   }
 
   function like(track) {
@@ -224,6 +393,8 @@ export default function App() {
       });
       localStorage.setItem('webmusic_token', data.token);
       setUser(data.user);
+      setPlaying(false);
+      setProgress(0);
       setModal('');
       setNotice(`Welcome ${data.user.name}`);
     } catch (error) {
@@ -247,11 +418,11 @@ export default function App() {
           view={view}
           setView={setView}
           liked={liked}
+          recentlyPlayedCount={recentlyPlayed.length}
           playlists={playlists}
           mobileNav={mobileNav}
           setMobileNav={setMobileNav}
           setModal={setModal}
-          setNotice={setNotice}
         />
 
         <main className="main-panel">
@@ -276,7 +447,13 @@ export default function App() {
             ) : (
               <>
                 {['Home', 'Discover'].includes(view) && !query && (
-                  <Hero tracks={tracks} play={play} setView={setView} />
+                  <Hero
+                    tracks={tracks}
+                    play={play}
+                    setView={setView}
+                    user={user}
+                    recentlyPlayed={recentlyPlayed}
+                  />
                 )}
                 {view === 'Home' && !query ? (
                   homeCategories.map((category) => (
@@ -291,7 +468,12 @@ export default function App() {
                       active={active}
                       isLiked={isLiked}
                       like={like}
-                      play={play}
+                      play={(track) => playFromContext(track, tracks.filter((item) =>
+                        category.matches(
+                          String(item.genre || '').toLowerCase(),
+                        ),
+                      ))}
+                      addToQueue={addToQueue}
                       setModal={setModal}
                       query={query}
                       view={view}
@@ -305,7 +487,8 @@ export default function App() {
                     active={active}
                     isLiked={isLiked}
                     like={like}
-                    play={play}
+                    play={(track) => playFromContext(track, visible)}
+                    addToQueue={addToQueue}
                     setModal={setModal}
                     query={query}
                     view={view}
@@ -313,7 +496,11 @@ export default function App() {
                     setView={setView}
                   />
                 )}
-                <MoodStrip setView={setView} />
+                <MoodStrip
+                  setView={setView}
+                  setQuery={setQuery}
+                  view={view}
+                />
                 <Footer />
               </>
             )}
@@ -322,7 +509,6 @@ export default function App() {
 
         <MusicPlayer
           active={active}
-          tracks={tracks}
           playing={playing}
           setPlaying={setPlaying}
           playRequest={playRequest}
@@ -332,7 +518,22 @@ export default function App() {
           setVolume={setVolume}
           isLiked={isLiked}
           like={like}
-          play={play}
+          play={playQueued}
+          playNext={playNext}
+          playPrevious={playPrevious}
+          shuffle={shuffle}
+          toggleShuffle={toggleShuffle}
+          repeatMode={repeatMode}
+          setRepeatMode={setRepeatMode}
+          queue={queue}
+          upcomingTracks={upcomingTracks}
+          removeFromQueue={(track) =>
+            setQueue((current) =>
+              current.filter((item) => String(item.id) !== String(track.id)),
+            )
+          }
+          queueOpen={queueOpen}
+          setQueueOpen={setQueueOpen}
         />
       </div>
       <ModalManager
