@@ -96,3 +96,38 @@ FROM (VALUES
 WHERE NOT EXISTS (
   SELECT 1 FROM tracks existing WHERE existing.audio_url = marathi_tracks.audio_url
 );
+
+INSERT INTO tracks(title, artist, album, cover_url, audio_url, duration_seconds, genre)
+SELECT title, artist, album, cover_url, audio_url, duration_seconds, 'Hindi'
+FROM (VALUES
+  ('Aa Re Pritam Pyaare', 'Mamta Sharma, Sarosh Sami, Sajid-Wajid', 'Rowdy Rathore',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/d7/6c/ac/d76cac8f-fe0d-d358-0b93-a3645c150825/886443470781.jpg/600x600bb.jpg',
+    '/audio/hindi-aa-re-pritam-pyaare.mp3', 241),
+  ('Balma', 'Shriram, Shreya Ghoshal', 'Khiladi 786',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/eb/3c/67/eb3c6723-4210-3c5e-5f47-6fc2de47892a/8902894351485_cover.jpg/600x600bb.jpg',
+    '/audio/hindi-balma.mp3', 217),
+  ('Chikni Chameli', 'Shreya Ghoshal, Ajay-Atul', 'Agneepath',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/60/15/fe/6015feb2-58ed-eafd-9870-f154de2b4ed8/886443303317.jpg/600x600bb.jpg',
+    '/audio/hindi-chikni-chameli.mp3', 359),
+  ('Chunnari Chunnari', 'Abhijeet, Anuradha Sriram', 'Biwi No. 1',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/7e/34/58/7e345871-6471-2d73-d0ed-67e8c608828d/8901854009282.jpg/600x600bb.jpg',
+    '/audio/hindi-chunnari-chunnari.mp3', 327),
+  ('Fevicol Se', 'Mamta Sharma, Wajid', 'Dabangg 2',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/d0/73/85/d0738530-32b0-eab9-9712-244412ca4695/8902894351652_cover.jpg/600x600bb.jpg',
+    '/audio/hindi-fevicol-se.mp3', 300),
+  ('Daddy Mummy', 'M.M. Manasi, Devi Sri Prasad', 'Bhaag Johnny',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/8f/d1/19/8fd119bf-6414-cb06-d88c-b6363fc63f0e/8902894357319_cover.jpg/600x600bb.jpg',
+    '/audio/hindi-daddy-mummy.mp3', 253),
+  ('Jadoo Ki Jhappi', 'Mika Singh, Neha Kakkar, Sachin-Jigar', 'Ramaiya Vastavaiya',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/0c/f4/ac/0cf4acd9-9510-3c12-b453-50021a4985ec/8901854027637.jpg/600x600bb.jpg',
+    '/audio/hindi-jadu-ki-jhappi.mp3', 234),
+  ('Chammak Challo', 'Akon, Vishal & Shekhar', 'Ra-One',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/0c/f0/42/0cf042ce-94bf-0e40-1691-2aef999a5dbc/8902894697309_cover.jpg/600x600bb.jpg',
+    '/audio/hindi-chammak-challo.mp3', 267),
+  ('Munni Badnaam Hui', 'Mamta Sharma, Aishwarya Nigam', 'Dabangg',
+    'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/d7/1f/56/d71f5669-03dc-e787-7999-6be9112c8601/8902894688765_cover.jpg/600x600bb.jpg',
+    '/audio/hindi-munni-badnaam-hui.mp3', 320)
+) AS hindi_tracks(title, artist, album, cover_url, audio_url, duration_seconds)
+WHERE NOT EXISTS (
+  SELECT 1 FROM tracks existing WHERE existing.audio_url = hindi_tracks.audio_url
+);

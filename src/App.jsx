@@ -11,6 +11,7 @@ import MusicPlayer from './components/MusicPlayer';
 import NoticeToast from './components/NoticeToast';
 import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
+import ProfileSection from './components/ProfileSection';
 import TopBar from './components/TopBar';
 import TrackSection from './components/TrackSection';
 
@@ -20,7 +21,6 @@ const homeCategories = [
     title: 'Hindi Songs',
     matches: (genre) => genre.includes('hindi') || genre.includes('bollywood'),
   },
-  { title: 'Item Songs', matches: (genre) => genre.includes('item') },
 ];
 
 export default function App() {
@@ -40,6 +40,7 @@ export default function App() {
   const [playlists, setPlaylists] = useState([]);
   const [hydrated, setHydrated] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const authRequired = hydrated && !user;
 
   useEffect(() => {
     try {
@@ -230,91 +231,113 @@ export default function App() {
     }
   }
 
+  function signOut() {
+    localStorage.removeItem('webmusic_token');
+    setView('Home');
+    setUser(null);
+    setNotice('Signed out');
+  }
+
   const isLiked = (track) => liked.includes(String(track.id));
 
   return (
-    <div className="app-shell">
-      <Sidebar
-        view={view}
-        setView={setView}
-        liked={liked}
-        playlists={playlists}
-        mobileNav={mobileNav}
-        setMobileNav={setMobileNav}
-        setModal={setModal}
-        setNotice={setNotice}
-      />
-
-      <main className="main-panel">
-        <TopBar
+    <>
+      <div className="app-shell" inert={!hydrated || authRequired}>
+        <Sidebar
           view={view}
-          user={user}
-          setUser={setUser}
-          setNotice={setNotice}
-          setAuthMode={setAuthMode}
-          setModal={setModal}
-          query={query}
-          setQuery={setQuery}
+          setView={setView}
+          liked={liked}
+          playlists={playlists}
+          mobileNav={mobileNav}
           setMobileNav={setMobileNav}
+          setModal={setModal}
+          setNotice={setNotice}
         />
-        <div className="content-scroll">
-          {['Home', 'Discover'].includes(view) && !query && (
-            <Hero tracks={tracks} play={play} setView={setView} />
-          )}
-          {view === 'Home' && !query ? (
-            homeCategories.map((category) => (
-              <TrackSection
-                key={category.title}
-                sectionTitle={category.title}
-                visible={tracks.filter((track) =>
-                  category.matches(String(track.genre || '').toLowerCase()),
-                )}
-                active={active}
-                isLiked={isLiked}
-                like={like}
-                play={play}
-                setModal={setModal}
-                query={query}
-                view={view}
-                setQuery={setQuery}
-                setView={setView}
-              />
-            ))
-          ) : (
-            <TrackSection
-              visible={visible}
-              active={active}
-              isLiked={isLiked}
-              like={like}
-              play={play}
-              setModal={setModal}
-              query={query}
-              view={view}
-              setQuery={setQuery}
-              setView={setView}
-            />
-          )}
-          <MoodStrip setView={setView} />
-          <Footer />
-        </div>
-      </main>
 
-      <MusicPlayer
-        active={active}
-        tracks={tracks}
-        playing={playing}
-        setPlaying={setPlaying}
-        playRequest={playRequest}
-        progress={progress}
-        setProgress={setProgress}
-        volume={volume}
-        setVolume={setVolume}
-        isLiked={isLiked}
-        like={like}
-        play={play}
-      />
+        <main className="main-panel">
+          <TopBar
+            view={view}
+            user={user}
+            setAuthMode={setAuthMode}
+            setModal={setModal}
+            setView={setView}
+            query={query}
+            setQuery={setQuery}
+            setMobileNav={setMobileNav}
+          />
+          <div className="content-scroll">
+            {view === 'Profile' && user ? (
+              <ProfileSection
+                user={user}
+                likedCount={liked.length}
+                playlistCount={playlists.length}
+                signOut={signOut}
+              />
+            ) : (
+              <>
+                {['Home', 'Discover'].includes(view) && !query && (
+                  <Hero tracks={tracks} play={play} setView={setView} />
+                )}
+                {view === 'Home' && !query ? (
+                  homeCategories.map((category) => (
+                    <TrackSection
+                      key={category.title}
+                      sectionTitle={category.title}
+                      visible={tracks.filter((track) =>
+                        category.matches(
+                          String(track.genre || '').toLowerCase(),
+                        ),
+                      )}
+                      active={active}
+                      isLiked={isLiked}
+                      like={like}
+                      play={play}
+                      setModal={setModal}
+                      query={query}
+                      view={view}
+                      setQuery={setQuery}
+                      setView={setView}
+                    />
+                  ))
+                ) : (
+                  <TrackSection
+                    visible={visible}
+                    active={active}
+                    isLiked={isLiked}
+                    like={like}
+                    play={play}
+                    setModal={setModal}
+                    query={query}
+                    view={view}
+                    setQuery={setQuery}
+                    setView={setView}
+                  />
+                )}
+                <MoodStrip setView={setView} />
+                <Footer />
+              </>
+            )}
+          </div>
+        </main>
+
+        <MusicPlayer
+          active={active}
+          tracks={tracks}
+          playing={playing}
+          setPlaying={setPlaying}
+          playRequest={playRequest}
+          progress={progress}
+          setProgress={setProgress}
+          volume={volume}
+          setVolume={setVolume}
+          isLiked={isLiked}
+          like={like}
+          play={play}
+        />
+      </div>
       <ModalManager
-        modal={modal}
+        modal={authRequired ? 'auth' : modal}
+        requiredAuth={authRequired}
         setModal={setModal}
         authMode={authMode}
         setAuthMode={setAuthMode}
@@ -326,6 +349,6 @@ export default function App() {
         addTrackToPlaylist={addTrackToPlaylist}
       />
       <NoticeToast notice={notice} setNotice={setNotice} />
-    </div>
+    </>
   );
 }

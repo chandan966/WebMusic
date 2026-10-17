@@ -1,13 +1,12 @@
-import { CircleUserRound, LogOut, Menu, Search } from 'lucide-react';
+import { CircleUserRound, Menu, Search } from 'lucide-react';
 import './TopBar.css';
 
 export default function TopBar({
   view,
   user,
-  setUser,
-  setNotice,
   setAuthMode,
   setModal,
+  setView,
   query,
   setQuery,
   setMobileNav,
@@ -39,17 +38,14 @@ export default function TopBar({
         {user ? (
           <button
             className="profile-pill"
-            onClick={() => {
-              localStorage.removeItem('webmusic_token');
-              setUser(null);
-              setNotice('Signed out');
-            }}
+            onClick={() => setView('Profile')}
+            aria-label="Open your profile"
           >
             <span className="avatar">
               {user.name?.slice(0, 1).toUpperCase()}
             </span>
             {user.name?.split(' ')[0]}
-            <LogOut size={15} />
+            <CircleUserRound size={15} />
           </button>
         ) : (
           <button

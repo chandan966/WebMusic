@@ -4,6 +4,7 @@ import './ModalManager.css';
 
 export default function ModalManager({
   modal,
+  requiredAuth = false,
   setModal,
   authMode,
   setAuthMode,
@@ -15,6 +16,9 @@ export default function ModalManager({
   addTrackToPlaylist,
 }) {
   const [playlistName, setPlaylistName] = useState('');
+  const closeModal = () => {
+    if (!requiredAuth) setModal('');
+  };
 
   async function submitPlaylist(event) {
     event.preventDefault();
@@ -55,12 +59,19 @@ export default function ModalManager({
   }
 
   return (
-    <div className="modal-backdrop" onClick={() => setModal('')}>
+    <div
+      className="modal-backdrop"
+      onClick={closeModal}
+      aria-modal={modal === 'auth' ? 'true' : undefined}
+      role={modal === 'auth' ? 'dialog' : undefined}
+    >
       {modal === 'auth' && (
         <div className="modal" onClick={(event) => event.stopPropagation()}>
-          <button className="modal-close" onClick={() => setModal('')}>
-            <X size={18} />
-          </button>
+          {!requiredAuth && (
+            <button className="modal-close" onClick={closeModal}>
+              <X size={18} />
+            </button>
+          )}
           <div className="modal-logo">
             <AudioLines size={22} />
           </div>
@@ -70,8 +81,12 @@ export default function ModalManager({
           </h2>
           <p className="modal-sub">
             {authMode === 'login'
-              ? 'Pick up where the music left off.'
-              : 'Create an account and build your own soundtrack.'}
+              ? requiredAuth
+                ? 'Sign in to your account to listen to music.'
+                : 'Pick up where the music left off.'
+              : requiredAuth
+                ? 'Create a free account to start listening to music.'
+                : 'Create an account and build your own soundtrack.'}
           </p>
           <form onSubmit={auth} className="auth-form">
             {authMode === 'register' && (
