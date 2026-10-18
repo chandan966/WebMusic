@@ -17,15 +17,9 @@ The API is served by the same app at `/api`: authentication (`/api/auth/register
 
 ### Admin account
 
-Register a regular account first. Promote only your own account to admin from your PostgreSQL console:
+To create the initial admin account, set `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` in your private `.env.local` (or deployment environment), then run `npm run db:setup` against the intended database. Choose a unique password of at least 12 characters; do not commit or share it. `BOOTSTRAP_ADMIN_NAME` is optional and defaults to `WebMusic Admin`.
 
-```sql
-UPDATE users
-SET role = 'admin'
-WHERE email = 'your-email@example.com';
-```
-
-Then sign out and use **Admin login** with that account. Public registration never creates admin accounts. Admins can manage catalogue songs, user roles/accounts, and the visible WebMusic/search-button names. If the production database was initialized before the branding settings table was added, run `npm run db:setup` with its `DATABASE_URL` pointed at that database; the schema setup is idempotent.
+The setup creates the account if it does not exist. If that email already belongs to an account, setup promotes it to admin and sets its password to `BOOTSTRAP_ADMIN_PASSWORD`. Then sign out and use **Admin login** with that email and password. Public registration never creates admin accounts. Admins can manage catalogue songs, user roles/accounts, and the visible WebMusic/search-button names. If the production database was initialized before the branding settings table was added, run `npm run db:setup` with its `DATABASE_URL` pointed at that database; the schema setup is idempotent.
 
 ## Vercel deployment
 
