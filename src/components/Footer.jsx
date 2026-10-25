@@ -5,7 +5,14 @@ export default function PageFooter() {
     <footer className="page-footer">
       <span>© 2026 WEBMUSIC </span>
       <span>
-        @webdevchandan <b>♥</b>
+        <a
+          href="https://www.instagram.com/webdevchandan/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          @webdevchandan
+        </a>{' '}
+        <b>♥</b>
       </span>
       <span>MADE FOR THE LOVE OF SOUND </span>
     </footer>

@@ -10,6 +10,13 @@
 .page-footer b {
   color: var(--red);
 }
+.page-footer a {
+  color: inherit;
+  text-decoration: none;
+}
+.page-footer a:hover {
+  color: var(--red);
+}
 @media(max-width:760px) {
   .page-footer {
     flex-wrap: wrap;
